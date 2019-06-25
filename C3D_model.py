@@ -1,10 +1,8 @@
+#Contains pytorch implementation of 3DCNN architecture
 import torch.nn as nn
 
 
 class C3D(nn.Module):
-    """
-    The C3D network as described in [1].
-    """
 
     def __init__(self):
         super(C3D, self).__init__()
@@ -66,10 +64,3 @@ class C3D(nn.Module):
         probs = self.softmax(logits)
 
         return probs
-
-"""
-References
-----------
-[1] Tran, Du, et al. "Learning spatiotemporal features with 3d convolutional networks." 
-Proceedings of the IEEE international conference on computer vision. 2015.
-"""
