@@ -1,5 +1,6 @@
 #Contains pytorch implementation of 3DCNN architecture
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class C3D(nn.Module):
@@ -7,10 +8,10 @@ class C3D(nn.Module):
     def __init__(self):
         super(C3D, self).__init__()
 
-        self.conv1 = nn.Conv3d(3, 64, kernel_size=(3, 3, 3), padding=(1, 1, 1))
+        self.conv1a = nn.Conv3d(3, 64, kernel_size=(3, 3, 3), padding=(1, 1, 1))
         self.pool1 = nn.MaxPool3d(kernel_size=(1, 2, 2), stride=(1, 2, 2))
 
-        self.conv2 = nn.Conv3d(64, 128, kernel_size=(3, 3, 3), padding=(1, 1, 1))
+        self.conv2a = nn.Conv3d(64, 128, kernel_size=(3, 3, 3), padding=(1, 1, 1))
         self.pool2 = nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 2, 2))
 
         self.conv3a = nn.Conv3d(128, 256, kernel_size=(3, 3, 3), padding=(1, 1, 1))
@@ -31,36 +32,32 @@ class C3D(nn.Module):
 
         self.dropout = nn.Dropout(p=0.5)
 
-        self.relu = nn.ReLU()
-        self.softmax = nn.Softmax()
-
     def forward(self, x):
+        x=F.relu(self.conv1a(x))
+        x=self.pool1(x)
 
-        h = self.relu(self.conv1(x))
-        h = self.pool1(h)
+        x=F.relu(self.conv2a(x))
+        x=self.pool2(x)
 
-        h = self.relu(self.conv2(h))
-        h = self.pool2(h)
+        x = F.relu(self.conv3a(x))
+        x = F.relu(self.conv3b(x))
+        x = self.pool3(x)
 
-        h = self.relu(self.conv3a(h))
-        h = self.relu(self.conv3b(h))
-        h = self.pool3(h)
+        x = F.relu(self.conv4a(x))
+        x = F.relu(self.conv4b(x))
+        x = self.pool4(x)
 
-        h = self.relu(self.conv4a(h))
-        h = self.relu(self.conv4b(h))
-        h = self.pool4(h)
+        x = F.relu(self.conv5a(h))
+        x = F.relu(self.conv5b(h))
+        x = self.pool5(h)
 
-        h = self.relu(self.conv5a(h))
-        h = self.relu(self.conv5b(h))
-        h = self.pool5(h)
+        x = x.view(-1, 8192)
+        x = self.relu(self.fc6(x))
+        x = self.dropout(x)
+        x = self.relu(self.fc7(x))
+        x = self.dropout(x)
 
-        h = h.view(-1, 8192)
-        h = self.relu(self.fc6(h))
-        h = self.dropout(h)
-        h = self.relu(self.fc7(h))
-        h = self.dropout(h)
+        logits = self.fc8(x)
+        prob = F.softmax(logits)
 
-        logits = self.fc8(h)
-        probs = self.softmax(logits)
-
-        return probs
+        return prob
