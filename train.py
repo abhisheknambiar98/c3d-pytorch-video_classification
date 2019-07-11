@@ -23,7 +23,7 @@ parser.add_argument('--lr', default=3e-3, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 args = parser.parse_args()
 
-# assert torch.cuda.is_available(), 'Error: CUDA not found!'
+assert torch.cuda.is_available(), 'Error: CUDA not found!'
 best_loss = float('inf')  # best test loss
 start_epoch = 0  # start from epoch 0 or last epoch
 
@@ -70,8 +70,8 @@ if args.resume:
     best_loss = checkpoint['loss']
     start_epoch = checkpoint['epoch']
 
-# net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
-# net.cuda()
+net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
+net.cuda()
 
 
 criterion=nn.CrossEntropyLoss()
@@ -86,10 +86,9 @@ def train(epoch):
         for batch_id, (inputs,labels) in enumerate(train_loader):
             inputs=torch.reshape(inputs,(batch_size,3,112,16,112))
             inputs=torch.transpose(inputs,2,3)
-            # inputs=torch.transpose(inputs,1,2)
 
-            inputs=inputs
-            labels=labels
+            inputs=inputs.cuda()
+            labels=labels.cuda()
 
             optimizer.zero_grad()
 
@@ -109,7 +108,7 @@ def test(epoch):
     for batch_id, (inputs,labels) in enumerate(validation_loader):
         inputs=torch.reshape(inputs,(batch_size,3,112,16,112))
         inputs=torch.transpose(inputs,2,3)
-        inputs=torch.transpose(inputs,1,2)
+
         with torch.no_grad():
 
             inputs = inputs.cuda()
@@ -137,9 +136,9 @@ def test(epoch):
         best_loss = val_loss
 
 
-# for epoch in range(start_epoch, start_epoch+50):
-#     train(epoch)
-#     test(epoch)
+for epoch in range(start_epoch, start_epoch+50):
+    train(epoch)
+    test(epoch)
 
 
-train(1)
+# train(1)
