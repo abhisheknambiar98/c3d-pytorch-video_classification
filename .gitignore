@@ -1,4 +1,3 @@
-data/roger
-data/ucf11
-frames
-labels.txt
+data
+helper.py
+

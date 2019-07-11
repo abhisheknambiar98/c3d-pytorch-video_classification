@@ -35,7 +35,7 @@ def re(filepath):
     return labels
 
 
-def main():
+def predict():
     X = get_sport_clip('test')
     X = Variable(X)
     X = X.cuda()
